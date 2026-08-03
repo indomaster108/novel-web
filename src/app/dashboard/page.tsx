@@ -19,14 +19,14 @@ export default async function DashboardPage() {
   const displayName = dashboard.displayName ?? "Pembaca";
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-12">
-      <div className="relative overflow-hidden rounded-[1.75rem] bg-[var(--accent)] p-5 text-white shadow-[var(--shadow)] sm:p-8">
+    <section className="page-shell py-7 sm:py-12">
+      <div className="relative overflow-hidden rounded-[1.75rem] bg-[var(--accent)] p-5 text-white shadow-[var(--shadow-raised)] sm:p-8">
         <div className="absolute -right-16 -top-20 size-56 rounded-full border border-white/12" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-extrabold tracking-[0.16em] text-white/65 uppercase">Ruang baca pribadi</p>
             <h1 className="mt-2 font-[family-name:var(--font-lora)] text-3xl font-bold leading-tight sm:text-5xl">Halo, {displayName}.</h1>
-            <p className="mt-3 break-all text-sm text-white/70">{dashboard.email}</p>
+            <p className="mt-3 break-all text-sm leading-6 text-white/70">{dashboard.email}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {dashboard.isAdmin && <Link href="/admin" className="inline-flex min-h-11 items-center rounded-xl bg-white px-4 text-sm font-extrabold text-[var(--accent)]">Buka area admin</Link>}
@@ -97,7 +97,7 @@ function SectionHeading({ eyebrow, title, id, action }: { eyebrow: string; title
 }
 
 function StatCard({ label, value, wide = false }: { label: string; value: number | string; wide?: boolean }) {
-  return <article className={`rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-5 ${wide ? "col-span-2 sm:col-span-1" : ""}`}><p className="text-xs font-bold text-[var(--muted)] sm:text-sm">{label}</p><p className="mt-1 font-[family-name:var(--font-lora)] text-2xl font-bold sm:text-3xl">{value}</p></article>;
+  return <article className={`ui-card p-4 sm:p-5 ${wide ? "col-span-2 sm:col-span-1" : ""}`}><p className="text-xs font-bold text-[var(--muted)] sm:text-sm">{label}</p><p className="mt-1 font-[family-name:var(--font-lora)] text-2xl font-bold sm:text-3xl">{value}</p></article>;
 }
 
 function EmptyState({ title, text, action }: { title: string; text: string; action?: string }) {

@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f1e8;
-  --foreground: #17201c;
-  --surface: #fffdf8;
-  --surface-2: #ece8de;
-  --muted: #626b65;
-  --border: #d9d4c8;
-  --accent: #17664f;
-  --accent-strong: #0d4f3c;
-  --accent-soft: #dcebe4;
-  --highlight: #b7653c;
-  --success: #27815f;
-  --danger: #b14343;
-  --reader: #fffdf7;
-  --shadow: 0 18px 60px rgb(31 43 36 / 9%);
+  --background: #f6f1e8;
+  --foreground: #1b2922;
+  --surface: #fffdfa;
+  --surface-2: #efe8dc;
+  --muted: #65706a;
+  --border: #ded6c8;
+  --accent: #17674f;
+  --accent-strong: #0b4b39;
+  --accent-soft: #dcece4;
+  --highlight: #a85c3c;
+  --success: #237a59;
+  --danger: #ad4141;
+  --reader: #fffdf8;
+  --shadow: 0 20px 55px rgb(37 47 40 / 10%);
+  --shadow-raised: 0 24px 75px rgb(37 47 40 / 16%);
 }
 
 @theme inline {
@@ -24,20 +25,21 @@
 }
 
 .dark {
-  --background: #101713;
-  --foreground: #ecf0ed;
-  --surface: #17201b;
-  --surface-2: #202c26;
-  --muted: #a6b1aa;
-  --border: #334139;
-  --accent: #69c6a2;
-  --accent-strong: #91dbbc;
-  --accent-soft: #213c31;
-  --highlight: #e19569;
-  --success: #69c6a2;
-  --danger: #ef8c8c;
-  --reader: #17201b;
-  --shadow: 0 18px 60px rgb(0 0 0 / 26%);
+  --background: #0f1814;
+  --foreground: #edf2ee;
+  --surface: #17221d;
+  --surface-2: #203029;
+  --muted: #abb6af;
+  --border: #35443b;
+  --accent: #73cdaa;
+  --accent-strong: #a0e1c4;
+  --accent-soft: #203d31;
+  --highlight: #e3a17b;
+  --success: #73cdaa;
+  --danger: #f09393;
+  --reader: #17221d;
+  --shadow: 0 20px 55px rgb(0 0 0 / 30%);
+  --shadow-raised: 0 24px 75px rgb(0 0 0 / 40%);
 }
 
 * {
@@ -46,16 +48,19 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--background);
 }
 
 body {
   background:
-    radial-gradient(circle at 8% 4%, color-mix(in srgb, var(--highlight) 7%, transparent), transparent 28rem),
+    radial-gradient(circle at 8% 2%, color-mix(in srgb, var(--highlight) 8%, transparent), transparent 30rem),
+    radial-gradient(circle at 94% 15%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 28rem),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
   text-rendering: optimizeLegibility;
   overflow-x: clip;
+  line-height: 1.5;
 }
 
 button,
@@ -70,11 +75,80 @@ textarea {
   min-height: 3rem;
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   background: var(--background);
   padding: 0 0.875rem;
   color: var(--foreground);
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.page-shell {
+  margin-inline: auto;
+  width: min(100% - 2rem, 72rem);
+}
+
+.section-eyebrow {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ui-card {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(21 34 27 / 3%);
+}
+
+.ui-button,
+.ui-button-secondary {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease,
+    color 160ms ease, box-shadow 160ms ease;
+}
+
+.ui-button {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.ui-button:hover {
+  background: var(--accent-strong);
+  box-shadow: 0 13px 28px color-mix(in srgb, var(--accent) 28%, transparent);
+  transform: translateY(-1px);
+}
+
+.ui-button-secondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.ui-button-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.ui-button:disabled,
+.ui-button-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.reader-copy > p + p {
+  margin-top: 1.65em;
 }
 
 .auth-input::placeholder {
@@ -100,8 +174,14 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 70%, white);
+  outline: 3px solid color-mix(in srgb, var(--accent) 74%, white);
   outline-offset: 3px;
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    width: min(100% - 3rem, 72rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
