@@ -23,6 +23,10 @@ const registrationSchema = credentialsSchema.extend({
 });
 
 const emailSchema = z.object({ email: z.email("Masukkan alamat email yang valid.").max(254) });
+const emailOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email("Masukkan alamat email yang valid.").max(254)),
+  token: z.string().trim().regex(/^\d{6}$/, "Kode verifikasi harus terdiri dari 6 angka."),
+});
 const passwordSchema = z.object({ password: z.string().min(8).max(128) });
 
 const missingConfig: AuthState = {
@@ -63,7 +67,35 @@ export async function registerAction(_state: AuthState, formData: FormData): Pro
   });
 
   if (error) return invalid("Akun belum dapat dibuat. Periksa data atau coba kembali nanti.");
-  return { status: "success", message: "Akun pembaca dibuat. Periksa email untuk menyelesaikan verifikasi." };
+  return {
+    status: "success",
+    message: "Akun pembaca dibuat. Masukkan kode 6 digit yang kami kirim ke emailmu.",
+  };
+}
+
+export async function verifyEmailOtpAction(
+  _state: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  if (!getSupabaseConfig()) return missingConfig;
+  const parsed = emailOtpSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return invalid(parsed.error.issues[0]?.message ?? "Email atau kode verifikasi tidak valid.");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: parsed.data.email,
+    token: parsed.data.token,
+    type: "email",
+  });
+
+  if (error || !data.user) {
+    return invalid("Kode tidak valid atau sudah kedaluwarsa. Periksa kode terbaru lalu coba lagi.");
+  }
+
+  revalidatePath("/", "layout");
+  redirect(data.user.app_metadata?.role === "admin" ? "/admin" : "/dashboard");
 }
 
 export async function resendConfirmationAction(
@@ -83,7 +115,7 @@ export async function resendConfirmationAction(
 
   return {
     status: "success",
-    message: "Jika akun masih menunggu verifikasi, email baru akan dikirim. Gunakan tautan yang paling baru.",
+    message: "Jika akun masih menunggu verifikasi, kode baru akan dikirim. Gunakan kode dari email terbaru.",
   };
 }
 

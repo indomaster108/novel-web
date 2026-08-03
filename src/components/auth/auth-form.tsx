@@ -100,9 +100,14 @@ export function AuthForm({ mode, configured, notice }: { mode: FormMode; configu
             )}
 
             {state.message && (
-              <p className={`rounded-xl p-3.5 text-sm leading-6 ${state.status === "error" ? "bg-red-500/10 text-[var(--danger)]" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`} role="status">
-                {state.message}
-              </p>
+              <div className={`rounded-xl p-3.5 text-sm leading-6 ${state.status === "error" ? "bg-red-500/10 text-[var(--danger)]" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"}`} role="status">
+                <p>{state.message}</p>
+                {mode === "register" && state.status === "success" && (
+                  <Link href="/auth/verify" className="mt-2 inline-flex min-h-10 items-center font-extrabold underline underline-offset-4">
+                    Masukkan kode verifikasi
+                  </Link>
+                )}
+              </div>
             )}
 
             <button type="submit" disabled={!configured || pending} className="min-h-12 w-full rounded-xl bg-[var(--accent)] px-5 text-sm font-extrabold text-white shadow-[0_10px_30px_color-mix(in_srgb,var(--accent)_22%,transparent)] transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-50">
@@ -115,6 +120,7 @@ export function AuthForm({ mode, configured, notice }: { mode: FormMode; configu
               {mode !== "login" && <Link href="/auth/login">Sudah punya akun?</Link>}
               {mode !== "register" && <Link href="/auth/register">Daftar sebagai pembaca</Link>}
               {!isForgot && <Link href="/auth/forgot-password">Lupa kata sandi?</Link>}
+              {(mode === "login" || mode === "register") && <Link href="/auth/verify">Sudah punya kode?</Link>}
             </div>
           </div>
 

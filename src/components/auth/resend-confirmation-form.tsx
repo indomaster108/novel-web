@@ -18,7 +18,7 @@ export function ResendConfirmationForm({ configured }: { configured: boolean }) 
         </p>
       )}
       <button type="submit" disabled={!configured || pending} className="mt-4 min-h-12 w-full rounded-xl bg-[var(--accent)] px-4 text-sm font-extrabold text-white disabled:opacity-50">
-        {pending ? "Mengirim…" : "Kirim ulang email verifikasi"}
+        {pending ? "Mengirim…" : "Kirim ulang kode verifikasi"}
       </button>
     </form>
   );

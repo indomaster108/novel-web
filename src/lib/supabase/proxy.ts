@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
 
   if (
     isAuthenticated &&
-    (pathname === "/auth/login" || pathname === "/auth/register")
+    (pathname === "/auth/login" || pathname === "/auth/register" || pathname === "/auth/verify")
   ) {
     const accountUrl = request.nextUrl.clone();
     accountUrl.pathname = data?.claims?.app_metadata?.role === "admin" ? "/admin" : "/dashboard";

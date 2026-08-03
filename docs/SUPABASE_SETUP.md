@@ -44,13 +44,22 @@ Untuk development, tambahkan `http://localhost:3000`. Jangan memakai wildcard pr
 
 ### Confirm signup
 
-Buka **Authentication → Email Templates → Confirm signup**. Ganti tautan tombol agar verifikasi diproses oleh aplikasi, bukan menampilkan respons JSON Supabase:
+Buka **Authentication → Email Templates → Confirm signup**. Gunakan kode OTP, bukan tautan verifikasi mentah. Contoh subject:
+
+```text
+Kode verifikasi Ruang Aksara
+```
+
+Contoh body:
 
 ```html
-<a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
-  Konfirmasi akun pembaca
-</a>
+<h2>Konfirmasi akun pembaca</h2>
+<p>Masukkan kode berikut di Ruang Aksara:</p>
+<p style="font-size:32px;font-weight:700;letter-spacing:8px">{{ .Token }}</p>
+<p>Kode ini hanya dapat digunakan sekali. Abaikan email ini jika Anda tidak membuat akun.</p>
 ```
+
+Pembaca memasukkan email dan kode tersebut pada `/auth/verify`. Email dan OTP tidak dikirim melalui query string atau disimpan di URL.
 
 ### Reset password
 
@@ -62,9 +71,9 @@ Buka **Authentication → Email Templates → Reset password** dan gunakan:
 </a>
 ```
 
-Jangan memakai `{{ .ConfirmationURL }}` untuk kedua tombol di atas. Route `/auth/confirm` memverifikasi token sekali pakai di server, membuat cookie sesi, lalu mengarahkan pembaca ke dashboard, admin ke area admin, atau pemulihan ke halaman kata sandi. Tautan kedaluwarsa diarahkan ke halaman ramah pengguna dengan formulir kirim ulang.
+Jangan memakai `{{ .ConfirmationURL }}` untuk reset password. Route `/auth/confirm` tetap digunakan untuk pemulihan kata sandi dan kompatibilitas tautan konfirmasi lama. Verifikasi pendaftaran baru menggunakan `{{ .Token }}` dan aksi server `/auth/verify`; setelah berhasil, aplikasi membuat sesi lalu mengarahkan pembaca ke dashboard.
 
-Aktifkan konfirmasi email. Untuk pengiriman production, konfigurasi SMTP milik organisasi dan tinjau rate limit serta attack protection di Supabase Auth.
+Aktifkan konfirmasi email. Untuk pengiriman production, gunakan SMTP milik organisasi dan tinjau rate limit serta attack protection di Supabase Auth. Setelah mengganti template, buat akun pembaca percobaan dan pastikan email benar-benar berisi kode 6 digit.
 
 ## 4. Membuat admin
 
