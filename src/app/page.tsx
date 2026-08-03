@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { NovelCard } from "@/components/novel/novel-card";
 import { getNovelCatalog } from "@/lib/novel-repository";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function Home() {
   const { data: novels, source, error } = await getNovelCatalog();
