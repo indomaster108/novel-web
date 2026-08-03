@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function NotFound() { return <section className="mx-auto max-w-xl px-4 py-24 text-center"><p className="text-sm font-bold text-[var(--accent)]">404</p><h1 className="mt-2 font-[family-name:var(--font-lora)] text-3xl font-bold">Halaman ini tidak ditemukan.</h1><p className="mt-3 text-[var(--muted)]">Mungkin ceritanya telah berpindah ke rak lain.</p><Link href="/novels" className="mt-7 inline-flex min-h-12 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-white">Lihat semua novel</Link></section>; }

@@ -1,0 +1,2 @@
+"use client";
+export default function Error({ reset }: { reset: () => void }) { return <section className="mx-auto max-w-xl px-4 py-24 text-center"><p className="text-sm font-bold text-[var(--accent)]">Terjadi gangguan</p><h1 className="mt-2 font-[family-name:var(--font-lora)] text-3xl font-bold">Cerita ini belum bisa dibuka.</h1><p className="mt-3 text-[var(--muted)]">Silakan coba lagi beberapa saat lagi.</p><button type="button" onClick={reset} className="mt-7 min-h-12 rounded-full bg-[var(--accent)] px-5 text-sm font-bold text-white">Coba lagi</button></section>; }
