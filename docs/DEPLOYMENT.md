@@ -1,5 +1,15 @@
 # Deployment dan custom domain
 
+## Deployment aktif
+
+```text
+Repository: https://github.com/indomaster108/novel-web
+Preview terverifikasi: https://novel-o8was2z0i-indomaster-org.vercel.app
+Production canonical: https://novel-web-fawn.vercel.app
+```
+
+Project Vercel sudah aktif, tetapi koneksi GitHub App masih perlu diberi akses manual ke repository private `indomaster108/novel-web`. Deployment saat ini dilakukan melalui Vercel CLI. Setelah akses aplikasi diberikan, hubungkan repository dari **Vercel Project Settings > Git** agar push berikutnya membuat deployment otomatis.
+
 ## GitHub private
 
 Pastikan `.env.local` diabaikan, lalu buat repository private:
@@ -40,10 +50,12 @@ Preview harus diuji sebelum production. Verifikasi homepage, katalog, detail nov
 
 Setelah origin production benar-benar tersedia, masukkan origin exact pada **Authentication > URL Configuration**:
 
+Untuk deployment aktif, masukkan nilai exact berikut secara manual di **Authentication > URL Configuration**:
+
 ```text
-Site URL: https://<production-origin>
-Redirect URL: https://<production-origin>/auth/callback
-Redirect URL: https://<production-origin>/auth/update-password
+Site URL: https://novel-web-fawn.vercel.app
+Redirect URL: https://novel-web-fawn.vercel.app/auth/callback
+Redirect URL: https://novel-web-fawn.vercel.app/auth/update-password
 ```
 
 Tambahkan preview tertentu hanya ketika memang diperlukan untuk pengujian auth dan hapus setelah selesai. Hindari wildcard production yang luas.
