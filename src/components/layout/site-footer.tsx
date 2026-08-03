@@ -8,7 +8,7 @@ export function SiteFooter({ viewer }: { viewer: Viewer }) {
 
   return (
     <footer className="border-t border-[var(--border)] bg-[color:color-mix(in_srgb,var(--surface)_88%,transparent)]">
-      <div className="page-shell grid gap-7 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="page-shell grid gap-7 pb-24 pt-10 sm:grid-cols-[1fr_auto] sm:items-end sm:py-10">
         <div>
           <p className="font-[family-name:var(--font-lora)] text-lg font-bold">Ruang Aksara</p>
           <p className="mt-2 max-w-md text-sm leading-6 text-[var(--muted)]">Ruang yang tenang untuk membaca cerita orisinal dan kembali ke halaman terakhirmu tanpa kehilangan jejak.</p>

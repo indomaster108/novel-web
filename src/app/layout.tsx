@@ -3,6 +3,7 @@ import { Lora, Manrope } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import { getViewer } from "@/lib/auth";
 import { siteUrl } from "@/lib/site";
 
@@ -46,8 +47,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-[var(--background)] font-[family-name:var(--font-manrope)] text-[var(--foreground)]">
         <SiteHeader viewer={viewer} />
-        <main className="min-h-[calc(100vh-9rem)]">{children}</main>
+        <main className="min-h-[calc(100vh-9rem)] pb-20 md:pb-0">{children}</main>
         <SiteFooter viewer={viewer} />
+        <MobileTabBar viewer={viewer} />
       </body>
     </html>
   );
