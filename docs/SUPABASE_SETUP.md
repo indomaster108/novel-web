@@ -36,8 +36,8 @@ Pada **Authentication → URL Configuration**, gunakan URL yang benar-benar ters
 Untuk production, buka **Authentication → URL Configuration**:
 
 ```text
-Site URL: https://novel-web-fawn.vercel.app
-Redirect URL: https://novel-web-fawn.vercel.app
+Site URL: https://ra-novel.vercel.app
+Redirect URL: https://ra-novel.vercel.app
 ```
 
 Untuk development, tambahkan `http://localhost:3000`. Jangan memakai wildcard production yang luas.
