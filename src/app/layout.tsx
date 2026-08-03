@@ -3,6 +3,7 @@ import { Lora, Manrope } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { getViewer } from "@/lib/auth";
 import { siteUrl } from "@/lib/site";
 
 const manrope = Manrope({
@@ -31,20 +32,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const viewer = await getViewer();
+
   return (
     <html
       lang="id"
       className={`${manrope.variable} ${lora.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[var(--background)] font-[family-name:var(--font-manrope)] text-[var(--foreground)]">
-        <SiteHeader />
+        <SiteHeader viewer={viewer} />
         <main className="min-h-[calc(100vh-9rem)]">{children}</main>
-        <SiteFooter />
+        <SiteFooter viewer={viewer} />
       </body>
     </html>
   );

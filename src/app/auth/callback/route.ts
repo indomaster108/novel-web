@@ -33,14 +33,24 @@ export async function GET(request: NextRequest) {
   const type = otpTypeSchema.safeParse(request.nextUrl.searchParams.get("type"));
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(redirectUrl);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      if (next === "/dashboard" && data.user?.app_metadata?.role === "admin") {
+        redirectUrl.pathname = "/admin";
+      }
+      return NextResponse.redirect(redirectUrl);
+    }
   } else if (tokenHash && type.success) {
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: type.data as EmailOtpType,
     });
-    if (!error) return NextResponse.redirect(redirectUrl);
+    if (!error) {
+      if (next === "/dashboard" && data.user?.app_metadata?.role === "admin") {
+        redirectUrl.pathname = "/admin";
+      }
+      return NextResponse.redirect(redirectUrl);
+    }
   }
 
   redirectUrl.pathname = "/auth/error";

@@ -28,6 +28,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data, error } = await supabase.auth.getClaims();
   const pathname = request.nextUrl.pathname;
+  const isAuthenticated = !error && Boolean(data?.claims?.sub);
   const needsAuthentication = privatePaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
@@ -38,6 +39,16 @@ export async function updateSession(request: NextRequest) {
     loginUrl.search = "";
     loginUrl.searchParams.set("notice", "login-required");
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (
+    isAuthenticated &&
+    (pathname === "/auth/login" || pathname === "/auth/register")
+  ) {
+    const accountUrl = request.nextUrl.clone();
+    accountUrl.pathname = data?.claims?.app_metadata?.role === "admin" ? "/admin" : "/dashboard";
+    accountUrl.search = "";
+    return NextResponse.redirect(accountUrl);
   }
 
   if (

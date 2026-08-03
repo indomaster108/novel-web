@@ -29,25 +29,46 @@ Migration di `supabase/migrations` membuat tabel, constraint, index, trigger, gr
 
 Migration ini bersifat forward-only. Sebelum menerapkannya pada project berisi data, buat backup dan uji pada branch Supabase. Jika gagal, buat migration perbaikan baru; jangan menghapus history migration.
 
-## 3. Auth URL
+## 3. Auth URL dan template email
 
 Pada **Authentication → URL Configuration**, gunakan URL yang benar-benar tersedia.
 
-Untuk development:
+Untuk production, buka **Authentication → URL Configuration**:
 
 ```text
-Site URL: http://localhost:3000
-Redirect URL: http://localhost:3000/auth/callback
-Redirect URL: http://localhost:3000/auth/update-password
+Site URL: https://novel-web-fawn.vercel.app
+Redirect URL: https://novel-web-fawn.vercel.app
 ```
 
-Tambahkan origin production yang benar-benar tersedia secara eksplisit setelah deployment, termasuk `/auth/callback` dan `/auth/update-password`. Jangan memakai wildcard production yang luas. Alur aplikasi hanya mengizinkan redirect internal ke `/dashboard` dan `/auth/update-password`.
+Untuk development, tambahkan `http://localhost:3000`. Jangan memakai wildcard production yang luas.
+
+### Confirm signup
+
+Buka **Authentication → Email Templates → Confirm signup**. Ganti tautan tombol agar verifikasi diproses oleh aplikasi, bukan menampilkan respons JSON Supabase:
+
+```html
+<a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">
+  Konfirmasi akun pembaca
+</a>
+```
+
+### Reset password
+
+Buka **Authentication → Email Templates → Reset password** dan gunakan:
+
+```html
+<a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">
+  Atur ulang kata sandi
+</a>
+```
+
+Jangan memakai `{{ .ConfirmationURL }}` untuk kedua tombol di atas. Route `/auth/confirm` memverifikasi token sekali pakai di server, membuat cookie sesi, lalu mengarahkan pembaca ke dashboard, admin ke area admin, atau pemulihan ke halaman kata sandi. Tautan kedaluwarsa diarahkan ke halaman ramah pengguna dengan formulir kirim ulang.
 
 Aktifkan konfirmasi email. Untuk pengiriman production, konfigurasi SMTP milik organisasi dan tinjau rate limit serta attack protection di Supabase Auth.
 
 ## 4. Membuat admin
 
-Role admin hanya berasal dari `auth.users.raw_app_meta_data`, yang diterbitkan sebagai `app_metadata` pada JWT. Jalankan dengan UUID pengguna yang sudah diverifikasi:
+Tidak ada pendaftaran admin publik. Buat atau undang akun khusus melalui **Authentication → Users**, lalu tetapkan role admin. Role hanya berasal dari `auth.users.raw_app_meta_data`, yang diterbitkan sebagai `app_metadata` pada JWT. Jalankan dengan UUID pengguna yang sudah diverifikasi:
 
 ```sql
 update auth.users

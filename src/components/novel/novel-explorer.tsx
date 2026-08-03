@@ -40,7 +40,7 @@ export function NovelExplorer({ novels }: { novels: Novel[] }) {
       </div>
       {filteredNovels.length ? (
         <>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-1 gap-4 min-[390px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
             {filteredNovels.slice(0, visibleCount).map((novel) => <NovelCard key={novel.slug} novel={novel} />)}
           </div>
           {visibleCount < filteredNovels.length && <div className="mt-8 text-center"><button type="button" onClick={() => setVisibleCount((count) => count + INITIAL_VISIBLE)} className="min-h-12 rounded-full border border-[var(--border)] px-5 text-sm font-bold hover:border-[var(--accent)] hover:text-[var(--accent)]">Muat lebih banyak</button></div>}

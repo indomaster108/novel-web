@@ -1,8 +1,9 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { getSupabaseConfig } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getViewer() {
+export const getViewer = cache(async function getViewer() {
   if (!getSupabaseConfig()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -13,7 +14,7 @@ export async function getViewer() {
     email: typeof data.claims.email === "string" ? data.claims.email : null,
     isAdmin: data.claims.app_metadata?.role === "admin",
   };
-}
+});
 
 export async function requireViewer() {
   const viewer = await getViewer();

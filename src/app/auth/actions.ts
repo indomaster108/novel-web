@@ -40,11 +40,11 @@ export async function loginAction(_state: AuthState, formData: FormData): Promis
   if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? "Data login tidak valid.");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return invalid("Email atau kata sandi tidak sesuai.");
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect(data.user.app_metadata?.role === "admin" ? "/admin" : "/dashboard");
 }
 
 export async function registerAction(_state: AuthState, formData: FormData): Promise<AuthState> {
@@ -58,12 +58,33 @@ export async function registerAction(_state: AuthState, formData: FormData): Pro
     password: parsed.data.password,
     options: {
       data: { display_name: parsed.data.displayName },
-      emailRedirectTo: `${getSiteUrl()}/auth/callback?next=/dashboard`,
+      emailRedirectTo: getSiteUrl(),
     },
   });
 
   if (error) return invalid("Akun belum dapat dibuat. Periksa data atau coba kembali nanti.");
-  return { status: "success", message: "Periksa email untuk menyelesaikan verifikasi akun." };
+  return { status: "success", message: "Akun pembaca dibuat. Periksa email untuk menyelesaikan verifikasi." };
+}
+
+export async function resendConfirmationAction(
+  _state: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  if (!getSupabaseConfig()) return missingConfig;
+  const parsed = emailSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return invalid(parsed.error.issues[0]?.message ?? "Email tidak valid.");
+
+  const supabase = await createClient();
+  await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: { emailRedirectTo: getSiteUrl() },
+  });
+
+  return {
+    status: "success",
+    message: "Jika akun masih menunggu verifikasi, email baru akan dikirim. Gunakan tautan yang paling baru.",
+  };
 }
 
 export async function forgotPasswordAction(_state: AuthState, formData: FormData): Promise<AuthState> {
@@ -73,7 +94,7 @@ export async function forgotPasswordAction(_state: AuthState, formData: FormData
 
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${getSiteUrl()}/auth/callback?next=/auth/update-password`,
+    redirectTo: getSiteUrl(),
   });
 
   return {
