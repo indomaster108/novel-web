@@ -6,6 +6,7 @@ import { BookmarkButton } from "@/components/novel/bookmark-button";
 import { getSupabaseConfig } from "@/lib/env";
 import { getNovelBySlug, getNovelCatalog } from "@/lib/novel-repository";
 import { getReaderState } from "@/lib/reader-data";
+import { siteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -29,7 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: novel.title,
       description: novel.synopsis,
+      type: "book",
+      authors: [novel.author],
+      tags: novel.genres,
       images: [{ url: novel.cover, alt: `Sampul ${novel.title}` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: novel.title,
+      description: novel.synopsis,
+      images: [novel.cover],
     },
   };
 }
@@ -46,12 +56,47 @@ export default async function NovelDetailPage({ params }: Props) {
   const firstChapter = novel.chapters[0];
   const continuedChapter = novel.chapters.find((chapter) => chapter.id === readerState.progressChapterId);
 
+  // 🚀 Enterprise SEO: JSON-LD Book Schema for Google Rich Snippets & Indexing
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    name: novel.title,
+    author: {
+      "@type": "Person",
+      name: novel.author,
+    },
+    url: `${siteUrl}/novels/${novel.slug}`,
+    image: novel.cover,
+    description: novel.synopsis,
+    inLanguage: "id-ID",
+    bookFormat: "https://schema.org/EBook",
+    genre: novel.genres,
+    numberOfPages: novel.chapters.length,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "IDR",
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/novels/${novel.slug}`,
+    },
+  };
+
   return (
     <section className="page-shell py-8 sm:py-12 lg:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link href="/novels" className="inline-flex min-h-10 items-center text-sm font-extrabold text-[var(--accent)] hover:underline"><span aria-hidden="true" className="mr-2">←</span>Kembali ke koleksi</Link>
       <div className="mt-6 grid gap-7 lg:grid-cols-[minmax(14rem,19rem)_minmax(0,1fr)] lg:gap-12">
         <div className="mx-auto w-full max-w-[19rem] lg:mx-0 lg:sticky lg:top-24 lg:self-start">
-          <Image src={novel.cover} alt={`Sampul ${novel.title}`} width={720} height={960} priority className="aspect-[3/4] w-full rounded-[1.35rem] border border-[var(--border)] object-cover shadow-[var(--shadow-raised)]" />
+          <div className="book-perspective relative overflow-hidden bg-[var(--surface-2)] p-2 rounded-[1.5rem]">
+            <div className="book-cover-container relative overflow-hidden rounded-xl">
+              <span className="book-spine-line" />
+              <span className="book-sheen" />
+              <Image src={novel.cover} alt={`Sampul ${novel.title}`} width={720} height={960} priority className="aspect-[3/4] w-full rounded-xl border border-[var(--border)] object-cover shadow-[var(--shadow-raised)]" />
+            </div>
+          </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-[var(--muted)]"><span className="rounded-xl bg-[var(--surface-2)] px-3 py-2.5">{novel.chapters.length} bab tersedia</span><span className="rounded-xl bg-[var(--surface-2)] px-3 py-2.5 capitalize">{novel.status}</span></div>
         </div>
 

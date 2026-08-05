@@ -7,6 +7,7 @@ import { ReaderControls } from "@/components/reader/reader-controls";
 import { getSupabaseConfig } from "@/lib/env";
 import { getChapterBySlug, getNovelCatalog } from "@/lib/novel-repository";
 import { getReaderState } from "@/lib/reader-data";
+import { siteUrl } from "@/lib/site";
 
 type Props = { params: Promise<{ novelSlug: string; chapterSlug: string }> };
 
@@ -25,8 +26,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data?.novel || !data.chapter) return {};
   return {
     title: `${data.novel.title} — Bab ${data.chapter.number}: ${data.chapter.title}`,
-    description: data.chapter.excerpt,
+    description: data.chapter.excerpt || `Baca bab ${data.chapter.number} dari novel ${data.novel.title} karya ${data.novel.author} secara online.`,
     alternates: { canonical: `/read/${data.novel.slug}/${data.chapter.slug}` },
+    openGraph: {
+      title: `${data.novel.title} — Bab ${data.chapter.number}: ${data.chapter.title}`,
+      description: data.chapter.excerpt,
+      type: "article",
+      authors: [data.novel.author],
+      images: [{ url: data.novel.cover, alt: `Sampul ${data.novel.title}` }],
+    },
+    twitter: {
+      card: "summary",
+      title: `${data.novel.title} — Bab ${data.chapter.number}`,
+      description: data.chapter.excerpt,
+      images: [data.novel.cover],
+    },
   };
 }
 
@@ -43,7 +57,31 @@ export default async function ReadPage({ params }: Props) {
   const next = novel.chapters[currentIndex + 1];
   const configured = Boolean(getSupabaseConfig());
 
+  // 🚀 Enterprise SEO: JSON-LD Chapter Schema for deep literature indexing & structural snippet hierarchy
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Chapter",
+    name: `Bab ${chapter.number}: ${chapter.title}`,
+    position: chapter.number,
+    url: `${siteUrl}/read/${novel.slug}/${chapter.slug}`,
+    description: chapter.excerpt || `${chapter.title} - Bagian dari novel ${novel.title} karya ${novel.author}.`,
+    isPartOf: {
+      "@type": "Book",
+      name: novel.title,
+      author: {
+        "@type": "Person",
+        name: novel.author,
+      },
+      url: `${siteUrl}/novels/${novel.slug}`,
+      image: novel.cover,
+    },
+  };
+
   return <section className="pb-24">
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
     <div className="page-shell pt-8 sm:pt-10">
       <Link href={`/novels/${novel.slug}`} className="inline-flex min-h-10 items-center text-sm font-extrabold text-[var(--accent)] hover:underline"><span aria-hidden="true" className="mr-2">←</span>{novel.title}</Link>
       <div className="mt-7 border-l-2 border-[var(--accent)] pl-4 sm:pl-5"><p className="section-eyebrow">Bab {chapter.number} dari {novel.chapters.length}</p><h1 className="mt-2 max-w-3xl font-[family-name:var(--font-lora)] text-[clamp(2rem,5vw,3.25rem)] font-bold leading-[1.1] tracking-tight">{chapter.title}</h1><p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">Tarik napas, pilih tampilan yang nyaman, lalu lanjutkan ketika kamu siap.</p></div>
