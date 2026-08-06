@@ -230,12 +230,150 @@ export type Database = {
           },
         ]
       }
+      lore_bibles: {
+        Row: {
+          category: string
+          created_at: string
+          details: Record<string, unknown>
+          id: string
+          name: string
+          novel_id: string
+          summary: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          details?: Record<string, unknown>
+          id?: string
+          name: string
+          novel_id: string
+          summary: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          details?: Record<string, unknown>
+          id?: string
+          name?: string
+          novel_id?: string
+          summary?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lore_bibles_novel_id_fkey"
+            columns: ["novel_id"]
+            isOneToOne: false
+            referencedRelation: "novels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chapter_summaries: {
+        Row: {
+          chapter_id: string | null
+          chapter_number: number
+          character_developments: Record<string, unknown>
+          created_at: string
+          id: string
+          key_events: string[]
+          novel_id: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          chapter_number: number
+          character_developments?: Record<string, unknown>
+          created_at?: string
+          id?: string
+          key_events?: string[]
+          novel_id: string
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          chapter_id?: string | null
+          chapter_number?: number
+          character_developments?: Record<string, unknown>
+          created_at?: string
+          id?: string
+          key_events?: string[]
+          novel_id?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_summaries_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_summaries_novel_id_fkey"
+            columns: ["novel_id"]
+            isOneToOne: false
+            referencedRelation: "novels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generation_logs: {
+        Row: {
+          created_at: string
+          generated_output: string | null
+          id: string
+          novel_id: string | null
+          prompt_input: string
+          source: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          generated_output?: string | null
+          id?: string
+          novel_id?: string | null
+          prompt_input: string
+          source?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          generated_output?: string | null
+          id?: string
+          novel_id?: string | null
+          prompt_input?: string
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generation_logs_novel_id_fkey"
+            columns: ["novel_id"]
+            isOneToOne: false
+            referencedRelation: "novels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      publish_chapter_on_demand: {
+        Args: {
+          target_chapter_id: string
+        }
+        Returns: Record<string, unknown>
+      }
     }
     Enums: {
       [_ in never]: never

@@ -30,6 +30,15 @@ export function SiteHeader({ viewer }: { viewer: Viewer }) {
           <Link href="/novels" className="inline-flex min-h-11 items-center rounded-xl px-2.5 transition hover:bg-[var(--surface-2)] hover:text-[var(--accent)] sm:px-3.5">
             <span className="sm:hidden">Baca</span><span className="hidden sm:inline">Jelajahi</span>
           </Link>
+          {viewer?.isAdmin && (
+            <Link
+              href="/admin/studio"
+              className="inline-flex min-h-11 items-center gap-1 rounded-xl bg-[color:color-mix(in_srgb,var(--accent)_15%,transparent)] px-2.5 font-extrabold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-3.5"
+            >
+              <span aria-hidden="true">✦</span>
+              <span>Studio</span>
+            </Link>
+          )}
           <Link
             href={accountHref}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl px-2.5 transition hover:bg-[var(--surface-2)] hover:text-[var(--accent)] sm:px-3.5"
