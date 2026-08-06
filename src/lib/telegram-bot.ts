@@ -33,7 +33,7 @@ function getBotClient() {
 /**
  * Sends text reply back to Telegram chat via API.
  */
-export async function sendTelegramReply(chatId: number, text: string, parseMode: "Markdown" | "HTML" = "Markdown") {
+export async function sendTelegramReply(chatId: number, text: string, replyMarkup?: any, parseMode: "Markdown" | "HTML" = "Markdown") {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     console.error("TELEGRAM_BOT_TOKEN missing");
@@ -48,6 +48,7 @@ export async function sendTelegramReply(chatId: number, text: string, parseMode:
         chat_id: chatId,
         text,
         parse_mode: parseMode,
+        ...(replyMarkup && { reply_markup: replyMarkup }),
       }),
     });
   } catch (err) {
@@ -83,6 +84,22 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
     return;
   }
 
+  // UI/UX Menu Mappings
+  if (text === "📊 Status Studio") text = "/status";
+  if (text === "📝 Cek Draf") text = "/drafts";
+  if (text === "💡 Cari Ide") {
+    await sendTelegramReply(chatId, "💡 *Mencari Ide Baru*\n\nKetik ide Anda dengan format:\n`/idea <kalimat ide yang Anda pikirkan>`\n\n_Contoh:_ \n`/idea Petualangan koki jalanan di dunia sihir`");
+    return;
+  }
+  if (text === "✍️ Tulis Bab") {
+    await sendTelegramReply(chatId, "✍️ *Menulis Bab Baru*\n\nKetik instruksi penulisan dengan format:\n`/write <nomor_bab> <arahan plot>`\n\n_Contoh:_\n`/write 1 Pengenalan karakter utama saat hujan`");
+    return;
+  }
+  if (text === "📖 Cari Lore") {
+    await sendTelegramReply(chatId, "📖 *Mencari Lore Bible*\n\nKetik kata kunci untuk mencari data lore:\n`/lore <kata kunci>`\n\n_Contoh:_\n`/lore Kerajaan Es`");
+    return;
+  }
+
   const parts = text.split(" ");
   const command = parts[0].toLowerCase();
   const args = parts.slice(1).join(" ").trim();
@@ -92,15 +109,23 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
     const banner =
       `🌟 *Ruang Aksara Pocket Bot* 🌟\n` +
       `_Pusat Komando AI Studio & Eksekusi Darurat_\n\n` +
-      `*Daftar Perintah Siaga:*\n` +
-      `• \`/idea <kalimat/ide>\` — Gemini AI ubah ide sederhana jadi sinopsis & outline novel (Semua Genre).\n` +
-      `• \`/write <no_bab> <arahan>\` — Gemini AI meracik naskah bab novel lengkap secara otomatis.\n` +
-      `• \`/status\` — Cek ringkasan novel, draf, dan data lore.\n` +
-      `• \`/drafts\` — Lihat daftar draf bab terbaru yang siap rilis.\n` +
-      `• \`/lore <query>\` — Cari wawasan dunia dari Lore Bible.\n` +
-      `• \`/publish <id_bab>\` — Rilis instan bab draf ke publik.\n\n` +
+      `Gunakan menu di bawah untuk jalan pintas, atau ketik perintah manual:\n` +
+      `• \`/idea <kalimat>\` — Meracik outline novel.\n` +
+      `• \`/write <no_bab> <arahan>\` — Menulis naskah.\n` +
+      `• \`/publish <id_bab>\` — Rilis instan draf ke publik.\n\n` +
       `_Frictionless Execution — Enterprise Tech Corp_ 🚀`;
-    await sendTelegramReply(chatId, banner);
+      
+    const keyboard = {
+      keyboard: [
+        [{ text: "📊 Status Studio" }, { text: "📝 Cek Draf" }],
+        [{ text: "💡 Cari Ide" }, { text: "✍️ Tulis Bab" }],
+        [{ text: "📖 Cari Lore" }]
+      ],
+      resize_keyboard: true,
+      is_persistent: true
+    };
+    
+    await sendTelegramReply(chatId, banner, keyboard);
     return;
   }
 
