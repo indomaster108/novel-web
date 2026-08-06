@@ -73,7 +73,7 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
   if (!msg || !msg.text || !msg.chat) return;
 
   const chatId = msg.chat.id;
-  const text = msg.text.trim();
+  let text = msg.text.trim();
 
   // SecOps Authentication Guard
   if (!isAuthorizedAdmin(chatId)) {
