@@ -14,6 +14,11 @@ import {
   logGenerationActivity,
   type LoreCategory,
 } from "@/lib/studio-data";
+import {
+  generateSynopsisAndOutline,
+  generateChapterWriting,
+  generateStudioCustomPrompt,
+} from "@/lib/gemini-engine";
 
 const uuid = z.string().uuid("ID tidak valid.");
 const loreCategorySchema = z.enum(["character", "location", "faction", "magic_system", "item", "rule", "other"]);
@@ -39,8 +44,8 @@ const summaryInputSchema = z.object({
 
 const scribePromptSchema = z.object({
   novelId: uuid,
-  mode: z.enum(["ideation", "dialogue", "draft_continuation", "lore_check"]),
-  prompt: z.string().trim().min(5, "Prompt minimal 5 karakter.").max(2000),
+  mode: z.enum(["ideation", "dialogue", "draft_continuation", "lore_check", "idea_to_synopsis", "write_chapter"]),
+  prompt: z.string().trim().min(5, "Prompt minimal 5 karakter.").max(3000),
 });
 
 function parseCommaTags(input?: string): string[] {
@@ -186,43 +191,20 @@ export async function generateScribeDraftAction(payload: unknown) {
   const latestSummary = summaryRes.data[0]?.summary ?? "Belum ada ringkasan bab sebelumnya.";
 
   let generatedOutput = "";
+  const contextBlock = `Konteks Tokoh Terdaftar: ${characters.join(", ") || "Belum ditentukan"}\nKonteks Latar & Aturan: ${[...locations, ...rules].join(", ") || "Dunia nyata / umum"}\nRingkasan Terakhir: ${latestSummary}`;
 
-  if (mode === "ideation") {
-    generatedOutput = `=== 🌟 IDEASI ALUR CERITA (INFINITE SCRIBE) ===
-📌 Fokus Pengembangan: "${prompt}"
-Konteks Karakter: ${characters.length ? characters.join(", ") : "Belum ditentukan"}
-Konteks Lokasi: ${locations.length ? locations.join(", ") : "Dunia umum"}
-
-[Opsi 1: Ekskalasi Konflik]
-• Ketegangan meningkat setelah peristiwa terakhir (${latestSummary.slice(0, 80)}...).
-• Tokoh utama dihadapkan pada dilema moral yang berhubungan langsung dengan hukum dunia (${rules[0] ?? "hukum misterius"}).
-
-[Opsi 2: Wahyu / Misteri Terungkap]
-• Penemuan item kuno atau informasi tersembunyi memicu petualangan ke lokasi baru.
-• Adegan diakhiri dengan cliffhanger kuat untuk mempertahankan rasa ingin tahu pembaca.`;
-  } else if (mode === "dialogue") {
-    const char1 = characters[0] ?? "Tokoh Utama";
-    const char2 = characters[1] ?? "Pendamping";
-    generatedOutput = `=== 💬 DRAFT DIALOG KARAKTER ===
-Arahan Suasana: "${prompt}"
-
-${char1}: ( menatap dalam ketegangan, bersuara pelan namun tegas ) "Kita tidak bisa mundur sekarang. Apa yang telah kita mulai harus tuntas hingga titik akhir."
-${char2}: ( menyela dengan rautan penuh kegelisahan ) "Bahkan jika konsekuensinya menghancurkan semua yang telah kita bangun di ${locations[0] ?? "tempat ini"}?"
-${char1}: "Terutama karena itu. Kadang, risiko terbesar adalah memilih untuk bersembunyi dari takdir."`;
-  } else if (mode === "draft_continuation") {
-    generatedOutput = `=== 📝 DRAFT BAB LANJUTAN ===
-Arahan Plot: "${prompt}"
-
-Angin malam berhembus membawa aura ketegangan yang mendalam. Sejenak, waktu seolah berhenti berdetik setelah kejutan yang terjadi sebelumnya. Di ufuk kejauhan, bayang-bayang masa depan menanti tanpa kepastian. 
-Tanpa banyak kata, langkah-langkah baru tertulis pada lembaran takdir. "Kita langkahi satu per satu persimpangan ini," batin mereka, bersiap menghadapi ujian berikutnya yang tersembunyi di dalam kegelapan yang kian menghitam.`;
+  if (mode === "idea_to_synopsis" || mode === "ideation") {
+    const res = await generateSynopsisAndOutline(prompt);
+    generatedOutput = res.text || res.error || "⚠️ Gagal menuai ideasi dari Gemini AI.";
+  } else if (mode === "write_chapter" || mode === "draft_continuation") {
+    const novel = await getAdminNovel(novelId);
+    const novelTitle = novel.novel?.title ?? "Proyek Novel";
+    const nextChapterNum = (novel.chapters?.length ?? 0) + 1;
+    const res = await generateChapterWriting(novelTitle, nextChapterNum, prompt, contextBlock);
+    generatedOutput = res.text || res.error || "⚠️ Gagal meracik naskah bab dari Gemini AI.";
   } else {
-    generatedOutput = `=== 🛡️ PEMERIKSAAN KONSISTENSI LORE ===
-Prompt Analisis: "${prompt}"
-
-✅ Status Sinkronisasi: KONSISTEN.
-• Hubungan dengan ${characters.length} tokoh terdaftar tidak menunjukkan paradoks waktu atau logika.
-• Batasan sistem sihir / aturan dunia (${rules.join(", ") || "Dasar logika umum"}) memvalidasi adegan yang diusulkan.
-💡 Rekomendasi Scribe: Tambahkan detail sensorik (suara, bau, suasana cahaya) saat mendeskripsikan latar tempat agar perpaduan dengan Lore Bible semakin terasa nyata!`;
+    const res = await generateStudioCustomPrompt(mode, prompt, contextBlock);
+    generatedOutput = res.text || res.error || "⚠️ Gagal memproses arahan khusus dengan Gemini AI.";
   }
 
   // Record generation activity into Supabase logging matrix

@@ -50,7 +50,7 @@ export function StudioClient({ initialNovels }: { initialNovels: AdminNovel[] })
   const [isPending, startTransition] = useTransition();
 
   // Scribe AI State
-  const [scribeMode, setScribeMode] = useState<"ideation" | "dialogue" | "draft_continuation" | "lore_check">("ideation");
+  const [scribeMode, setScribeMode] = useState<"idea_to_synopsis" | "write_chapter" | "ideation" | "dialogue" | "draft_continuation" | "lore_check">("idea_to_synopsis");
   const [scribePrompt, setScribePrompt] = useState("");
   const [generatedResult, setGeneratedResult] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -385,9 +385,10 @@ export function StudioClient({ initialNovels }: { initialNovels: AdminNovel[] })
                   onChange={(e) => setScribeMode(e.target.value as typeof scribeMode)}
                   className="auth-input mt-1.5 font-bold"
                 >
-                  <option value="ideation">🌟 Ideasi &amp; Eksplorasi Alur Cerita</option>
+                  <option value="idea_to_synopsis">✨ Ide Sederhana ➔ Sinopsis &amp; Outline Novel (Gemini AI)</option>
+                  <option value="write_chapter">📖 Tulis Naskah Bab Novel Lengkap (Gemini AI)</option>
+                  <option value="ideation">🌟 Ideasi &amp; Eksplorasi Alur Cerita (Semua Genre)</option>
                   <option value="dialogue">💬 Pengembangan Dialog &amp; Interaksi Tokoh</option>
-                  <option value="draft_continuation">📝 Draft Cepat Lanjutan Adegan</option>
                   <option value="lore_check">🛡️ Pemeriksaan Konsistensi &amp; Sinkronisasi Lore</option>
                 </select>
               </div>
@@ -401,7 +402,7 @@ export function StudioClient({ initialNovels }: { initialNovels: AdminNovel[] })
                   rows={4}
                   value={scribePrompt}
                   onChange={(e) => setScribePrompt(e.target.value)}
-                  placeholder="Contoh: Buatkan konflik ketegangan di kuil kuno saat tokoh utama menemukan kenyataan tentang sihir kristal..."
+                  placeholder="Contoh: Seorang barista menemukan surat cinta tua dari tahun 1980 di kafe sepi, lalu berniat mencarikan pemiliknya..."
                   className="auth-input mt-1.5 min-h-[7rem] resize-y py-3 text-sm"
                   required
                 />
@@ -412,7 +413,7 @@ export function StudioClient({ initialNovels }: { initialNovels: AdminNovel[] })
                 disabled={isGenerating || !selectedNovelId}
                 className="ui-button mt-2 w-full justify-center gap-2 font-extrabold"
               >
-                {isGenerating ? "⏳ Scribe Sedang Berpikir..." : "✦ Hasilkan Draft Sekarang"}
+                {isGenerating ? "⏳ Gemini AI Sedang Berpikir..." : "✦ Hasilkan dengan Gemini AI"}
               </button>
             </form>
           </div>

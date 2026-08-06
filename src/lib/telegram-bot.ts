@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseConfig } from "@/lib/env";
 import type { Database } from "@/types/database";
+import { generateSynopsisAndOutline, generateChapterWriting } from "@/lib/gemini-engine";
 
 export interface TelegramMessage {
   chat: { id: number };
@@ -92,10 +93,11 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
       `🌟 *Ruang Aksara Pocket Bot* 🌟\n` +
       `_Pusat Komando AI Studio & Eksekusi Darurat_\n\n` +
       `*Daftar Perintah Siaga:*\n` +
+      `• \`/idea <kalimat/ide>\` — Gemini AI ubah ide sederhana jadi sinopsis & outline novel (Semua Genre).\n` +
+      `• \`/write <no_bab> <arahan>\` — Gemini AI meracik naskah bab novel lengkap secara otomatis.\n` +
       `• \`/status\` — Cek ringkasan novel, draf, dan data lore.\n` +
       `• \`/drafts\` — Lihat daftar draf bab terbaru yang siap rilis.\n` +
       `• \`/lore <query>\` — Cari wawasan dunia dari Lore Bible.\n` +
-      `• \`/idea <prompt>\` — Panggil Scribe AI untuk ideasi dadakan.\n` +
       `• \`/publish <id_bab>\` — Rilis instan bab draf ke publik.\n\n` +
       `_Frictionless Execution — Enterprise Tech Corp_ 🚀`;
     await sendTelegramReply(chatId, banner);
@@ -187,25 +189,57 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
 
   if (command === "/idea") {
     if (!args) {
-      await sendTelegramReply(chatId, "ℹ️ *Format:* \`/idea <tema atau premis plot>\`\n_Contoh:_ \`/idea Pertemuan rahasia di kedai teh kuno\`");
+      await sendTelegramReply(chatId, "ℹ️ *Format:* `/idea <ide atau kalimat sederhana>`\n_Contoh:_ `/idea Seorang koki jalanan yang terikat janji dengan kritikus kuliner legendaris yang menghilang 10 tahun lalu.`");
       return;
     }
+    await sendTelegramReply(chatId, "⏳ *Gemini AI sedang memetakan genre, sinopsis best-seller, dan outline bab...*");
     try {
-      const generatedIdea =
-        `✨ *Scribe AI Idea:* \n\n` +
-        `"Beralas kabut fajar yang memekat, dialog dalam ${args} memicu konfrontasi baru. Tokoh utama mendapati bahwa item kuno yang disembunyikannya mendadak bergejolak merespons niat tersembunyi sang lawan bicara. Ini bisa membuka subplot mengenai pengkhianatan masa lalu."\n\n` +
-        `_💡 Tips AI: Jadikan ini batu loncatan menuju konflik klimaks di Bab berikutnya._`;
+      const geminiRes = await generateSynopsisAndOutline(args);
+      if (geminiRes.error || !geminiRes.text) {
+        await sendTelegramReply(chatId, `⚠️ Gagal memuat AI Gemini: ${geminiRes.error}`);
+        return;
+      }
 
+      const outputText = geminiRes.text;
       await supabase.from("generation_logs").insert({
         source: "telegram_bot",
-        prompt_input: args,
-        generated_output: generatedIdea,
+        prompt_input: `[IDEA TO NOVEL] ${args}`,
+        generated_output: outputText,
         status: "completed",
       });
 
-      await sendTelegramReply(chatId, generatedIdea);
+      await sendTelegramReply(chatId, outputText);
     } catch {
-      await sendTelegramReply(chatId, "⚠️ Scribe Assistant sedang sibuk atau offline.");
+      await sendTelegramReply(chatId, "⚠️ Scribe Gemini AI sedang mengalami hambatan jaringan.");
+    }
+    return;
+  }
+
+  if (command === "/write" || command === "/chapter") {
+    const spaceIdx = args.indexOf(" ");
+    const babNum = parseInt(args.substring(0, spaceIdx), 10);
+    const plotPrompt = args.substring(spaceIdx + 1).trim();
+
+    if (isNaN(babNum) || !plotPrompt || spaceIdx === -1) {
+      await sendTelegramReply(chatId, "ℹ️ *Format:* `/write <nomor_bab> <arahan atau outline bab>`\n_Contoh:_ `/write 1 Pertemuan tak terduga di kedai ramen saat hujan deras`");
+      return;
+    }
+    await sendTelegramReply(chatId, `⏳ *Gemini AI sedang menyelaraskan naskah sastrawi Bab ${babNum}...*`);
+    try {
+      const geminiRes = await generateChapterWriting("Proyek Saku Telegram", babNum, plotPrompt);
+      if (geminiRes.error || !geminiRes.text) {
+        await sendTelegramReply(chatId, `⚠️ Gagal menuai tulisan dari Gemini: ${geminiRes.error}`);
+        return;
+      }
+      await supabase.from("generation_logs").insert({
+        source: "telegram_bot",
+        prompt_input: `[WRITE BAB ${babNum}] ${plotPrompt}`,
+        generated_output: geminiRes.text,
+        status: "completed",
+      });
+      await sendTelegramReply(chatId, geminiRes.text);
+    } catch {
+      await sendTelegramReply(chatId, "⚠️ Terjadi hambatan komunikasi dengan pelayan Gemini.");
     }
     return;
   }
