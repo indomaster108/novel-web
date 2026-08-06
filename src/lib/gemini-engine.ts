@@ -42,31 +42,59 @@ async function callGemini(prompt: string, systemInstruction?: string, model: str
     };
   }
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  let lastError = null;
 
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      return {
-        error: `Gemini API Error (${res.status}): ${errJson.error?.message || res.statusText}`,
-        text: null,
-      };
+  while (attempt < MAX_RETRIES) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const status = res.status;
+        
+        // Auto-retry untuk error server sibuk (503) atau limit (429)
+        if (status === 503 || status === 429) {
+          attempt++;
+          if (attempt < MAX_RETRIES) {
+            const delayMs = attempt * 2000; // jeda 2 detik, 4 detik, dst
+            console.log(`[Gemini API] Server sibuk (Error ${status}), mencoba lagi dalam ${delayMs}ms (Percobaan ${attempt}/${MAX_RETRIES})...`);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            continue;
+          }
+        }
+        
+        return {
+          error: `Gemini API Error (${res.status}): ${errJson.error?.message || res.statusText}`,
+          text: null,
+        };
+      }
+
+      const json = await res.json();
+      const generatedText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!generatedText) {
+        return { error: "Gemini merespons tanpa teks naskah yang valid.", text: null };
+      }
+
+      return { error: null, text: generatedText };
+    } catch (err) {
+      lastError = err;
+      attempt++;
+      if (attempt < MAX_RETRIES) {
+        const delayMs = attempt * 2000;
+        console.log(`[Gemini API] Koneksi gagal, mencoba lagi dalam ${delayMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
     }
-
-    const json = await res.json();
-    const generatedText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!generatedText) {
-      return { error: "Gemini merespons tanpa teks naskah yang valid.", text: null };
-    }
-
-    return { error: null, text: generatedText };
-  } catch (err) {
-    return { error: `Gagal menghubungi pelayan Gemini API: ${(err as Error).message}`, text: null };
   }
+
+  return { error: `Gagal menghubungi pelayan Gemini API setelah ${MAX_RETRIES} percobaan. ${(lastError as Error)?.message || ""}`, text: null };
 }
 
 /**
@@ -126,7 +154,7 @@ export async function generateChapterWriting(
     userPrompt += `\n\n=== Referensi Sinopsis & Lore World ===\n${existingSynopsisOrLore}`;
   }
 
-  return callGemini(userPrompt, systemPrompt, "gemini-3.1-pro");
+  return callGemini(userPrompt, systemPrompt, "gemini-3.5-flash");
 }
 
 /**
