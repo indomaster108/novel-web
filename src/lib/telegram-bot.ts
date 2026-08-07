@@ -251,7 +251,20 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
     }
     await sendTelegramReply(chatId, `⏳ *Gemini AI sedang menyelaraskan naskah sastrawi Bab ${babNum}...*`);
     try {
-      const geminiRes = await generateChapterWriting("Proyek Saku Telegram", babNum, plotPrompt);
+      // Fetch latest novel idea from logs for context
+      const { data: latestIdea } = await supabase
+        .from("generation_logs")
+        .select("generated_output")
+        .eq("source", "telegram_bot")
+        .like("prompt_input", "[IDEA TO NOVEL]%")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+        
+      const novelContext = latestIdea?.generated_output || undefined;
+      const novelTitle = novelContext ? "Novel Berdasarkan Outline Terakhir" : "Proyek Saku Telegram";
+
+      const geminiRes = await generateChapterWriting(novelTitle, babNum, plotPrompt, novelContext);
       if (geminiRes.error || !geminiRes.text) {
         await sendTelegramReply(chatId, `⚠️ Gagal menuai tulisan dari Gemini: ${geminiRes.error}`);
         return;
